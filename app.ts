@@ -76,13 +76,25 @@ function selectGame(): string {
   console.log('3. 종료');
   const selectMenu = readline.question();
 
-  return 'hi';
+  if (selectMenu === '1') {
+    return gameStart();
+  } else if (selectMenu === '2') {
+    return searchBestRecord();
+  } else {
+    return theEnd();
+  }
 }
 
-function gameStart() {}
+function gameStart(): string {
+  return 'gameStart';
+}
 
-function searchBestRecord() {}
+function searchBestRecord(): string {
+  return 'searchBestRecord';
+}
 
-function theEnd() {}
+function theEnd(): string {
+  return '게임을 종료합니다.';
+}
 
 main();
