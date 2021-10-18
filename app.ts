@@ -8,16 +8,16 @@ function main(): void {
     console.log('2. 회원가입');
     const loginInput: string = readline.question();
     if (loginInput === '1') {
+      try {
+        fs.readFileSync('./test.txt', 'utf8');
+      } catch {
+        console.log('회원가입 먼저 해주세요.');
+        break;
+      }
+      const userParse: any = JSON.parse(fs.readFileSync('./test.txt', 'utf8'));
       console.log();
       console.log('아이디를 입력해주세요.');
       const loginInput: string = readline.question();
-      const userParse: any = JSON.parse(fs.readFileSync('./test.txt', 'utf8'));
-
-      try {
-        userParse;
-      } catch {
-        console.log('회원가입 먼저 해주세요.');
-      }
 
       const filterUser: any = userParse.filter(
         (el: any) => el.nickName === loginInput
@@ -37,9 +37,9 @@ function main(): void {
           console.log();
 
           if (selectMenu === '1') {
-            console.log(gameStart(filterUser[0]));
+            gameStart(filterUser[0]);
           } else if (selectMenu === '2') {
-            console.log(searchBestRecord());
+            console.log(searchBestRecord(filterUser[0]));
           } else {
             console.log('게임을 종료합니다.');
             console.log();
@@ -48,7 +48,7 @@ function main(): void {
         }
       }
     } else if (loginInput === '2') {
-      console.log(signup());
+      signup();
       console.log();
     } else {
       console.log('1번과 2번 중에서 골라주세요.');
@@ -57,42 +57,40 @@ function main(): void {
   }
 }
 
-function signup(): string {
+function signup(): void {
   console.log();
   console.log('📝 회원가입 하실 아이디를 입력해주세요. 📝');
   const nickName: string = readline.question();
 
   try {
-    fs.readFileSync('./test.txt', 'utf8');
+    let filterOnlyNickName = JSON.parse(
+      fs.readFileSync('./test.txt', 'utf8')
+    ).map((el: any) => el.nickName);
+
+    if (filterOnlyNickName.includes(nickName)) {
+      console.log('이미 존재하는 아이디 입니다.');
+    } else if (
+      isNaN(Number(nickName)) &&
+      !filterOnlyNickName.includes(nickName)
+    ) {
+      let parseNickName: Array<object> = JSON.parse(
+        fs.readFileSync('./test.txt', 'utf8')
+      );
+      parseNickName.push({ nickName: nickName });
+
+      fs.writeFileSync('./test.txt', `${JSON.stringify(parseNickName)}`);
+      console.log('🎉 회원가입이 완료되었습니다. 🎉');
+    } else {
+      console.log('숫자만으로 아이디를 만들 수 없습니다.');
+    }
   } catch {
     fs.writeFileSync('./test.txt', `[{"nickName" : "${nickName}"}]`);
-  }
-
-  let filterOnlyNickName = JSON.parse(
-    fs.readFileSync('./test.txt', 'utf8')
-  ).map((el: any) => el.nickName);
-
-  if (filterOnlyNickName.includes(nickName)) {
-    return '이미 존재하는 아이디 입니다.';
-  } else if (
-    isNaN(Number(nickName)) &&
-    !filterOnlyNickName.includes(nickName)
-  ) {
-    let parseNickName: Array<object> = JSON.parse(
-      fs.readFileSync('./test.txt', 'utf8')
-    );
-    parseNickName.push({ nickName: nickName });
-
-    fs.writeFileSync('./test.txt', `${JSON.stringify(parseNickName)}`);
-    return '🎉 회원가입이 완료되었습니다. 🎉';
-  } else {
-    return '숫자만으로 아이디를 만들 수 없습니다.';
+    console.log('🎉 회원가입이 완료되었습니다. 🎉');
   }
 }
 
 function gameStart(filterUser: any): void {
   let randomQuiz = randomNum();
-  console.log(randomQuiz);
   let tryCount = 0;
 
   while (true) {
@@ -139,6 +137,23 @@ function gameStart(filterUser: any): void {
       }
     }
   }
+
+  if (filterUser.bestScore === undefined || filterUser.bestScore > tryCount) {
+    filterUser.bestScore = tryCount;
+
+    let parseData = JSON.parse(fs.readFileSync('./test.txt', 'utf8'));
+
+    const filter = parseData.filter((el: any) => {
+      if (el.nickName === filterUser.nickName) {
+        return el;
+      }
+    });
+
+    parseData.splice(parseData.indexOf(filter[0]), 1);
+    parseData.push(filterUser);
+
+    fs.writeFileSync('./test.txt', `${JSON.stringify(parseData)}`);
+  }
 }
 
 function filterIf(numArr: Array<number>) {
@@ -166,13 +181,19 @@ function filterIf(numArr: Array<number>) {
   return newArr;
 }
 
-function searchBestRecord(): any {
-  const findUser = JSON.parse(fs.readFileSync('./test.txt', 'utf8'))[0];
+function searchBestRecord(filterUser: any): any {
+  const findUser = JSON.parse(fs.readFileSync('./test.txt', 'utf8')).filter(
+    (el: any) => {
+      if (el.nickName === filterUser.nickName) {
+        return el;
+      }
+    }
+  );
 
-  if (findUser.bestScore === undefined) {
+  if (findUser[0].bestScore === undefined) {
     return '아직 기록이 없군요! 게임을 먼저 시작해 주세요!';
   } else {
-    return `${findUser.nickName}님의 최고기록은 ${findUser.bestScore}번 입니다!`;
+    return `${findUser[0].nickName}님의 최고기록은 ${findUser[0].bestScore}번 입니다!`;
   }
 }
 
