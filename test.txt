@@ -1,1 +1,1 @@
-[{"nickName":"nanni888", "bestScore" : 5}]
+[{"nickName":"nanni888","bestScore":5}]
