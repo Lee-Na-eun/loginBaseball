@@ -26,22 +26,25 @@ function main(): void {
       if (filterUser.length === 0) {
         console.log('🤔 회원정보가 없습니다. 회원가입 먼저 해주세요. 🤔');
       } else {
-        console.log();
         console.log(`😍 환영합니다, ${filterUser[0].nickName}님 😍`);
-        console.log();
-        console.log('메뉴를 선택해주세요.');
-        console.log('1. 게임시작');
-        console.log('2. 내 최고기록 보기');
-        console.log('3. 종료');
-        const selectMenu = readline.question();
+        while (true) {
+          console.log();
+          console.log('메뉴를 선택해주세요.');
+          console.log('1. 게임시작');
+          console.log('2. 내 최고기록 보기');
+          console.log('3. 종료');
+          const selectMenu = readline.question();
+          console.log();
 
-        if (selectMenu === '1') {
-          console.log(gameStart());
-        } else if (selectMenu === '2') {
-          console.log(searchBestRecord());
-        } else {
-          console.log(theEnd());
-          break;
+          if (selectMenu === '1') {
+            console.log(gameStart(filterUser[0]));
+          } else if (selectMenu === '2') {
+            console.log(searchBestRecord());
+          } else {
+            console.log('게임을 종료합니다.');
+            console.log();
+            break;
+          }
         }
       }
     } else if (loginInput === '2') {
@@ -65,7 +68,16 @@ function signup(): string {
     fs.writeFileSync('./test.txt', `[{"nickName" : "${nickName}"}]`);
   }
 
-  if (isNaN(Number(nickName))) {
+  let filterOnlyNickName = JSON.parse(
+    fs.readFileSync('./test.txt', 'utf8')
+  ).map((el: any) => el.nickName);
+
+  if (filterOnlyNickName.includes(nickName)) {
+    return '이미 존재하는 아이디 입니다.';
+  } else if (
+    isNaN(Number(nickName)) &&
+    !filterOnlyNickName.includes(nickName)
+  ) {
     let parseNickName: Array<object> = JSON.parse(
       fs.readFileSync('./test.txt', 'utf8')
     );
@@ -78,32 +90,104 @@ function signup(): string {
   }
 }
 
-function selectGame(): string {
-  console.log('메뉴를 선택해주세요.');
-  console.log('1. 게임시작');
-  console.log('2. 내 최고기록 보기');
-  console.log('3. 종료');
-  const selectMenu = readline.question();
+function gameStart(filterUser: any): void {
+  let randomQuiz = randomNum();
+  console.log(randomQuiz);
+  let tryCount = 0;
 
-  if (selectMenu === '1') {
-    return gameStart();
-  } else if (selectMenu === '2') {
-    return searchBestRecord();
-  } else {
-    return theEnd();
+  while (true) {
+    console.log('1 ~ 9까지 원하는 숫자 세가지를 입력하세요.');
+    const numInput: string = readline.question();
+
+    const changeNum: Array<number> = numInput
+      .split(' ')
+      .map((el) => Number(el));
+
+    const filterIfLength: number = filterIf(changeNum).length;
+
+    if (filterIfLength === 3) {
+      tryCount++;
+      let ballCount: number = 0;
+      let strikeCount: number = 0;
+      for (let i = 0; i < changeNum.length; i++) {
+        const howManyBall: Boolean = randomQuiz.includes(changeNum[i]);
+        if (howManyBall && randomQuiz[i] === changeNum[i]) {
+          strikeCount++;
+        } else if (howManyBall) {
+          ballCount++;
+        }
+      }
+
+      if (ballCount === 0 && strikeCount === 0) {
+        console.log('Out!');
+        console.log();
+      } else if (strikeCount === 3) {
+        console.log();
+        console.log('🎊 Home Run! 🎊');
+        console.log(`축하합니다! ${tryCount}번 만에 성공하셨습니다!`);
+        console.log();
+        break;
+      } else if (ballCount !== 0 && strikeCount === 0) {
+        console.log(`⚾ ${ballCount} Ball! ⚾`);
+        console.log();
+      } else if (strikeCount !== 0 && ballCount === 0) {
+        console.log(`⚾ ${strikeCount} Strik! ⚾`);
+        console.log();
+      } else {
+        console.log(`⚾ ${strikeCount} Strik, ${ballCount} Ball! ⚾`);
+        console.log();
+      }
+    }
   }
 }
 
-function gameStart(): string {
-  return 'gameStart';
+function filterIf(numArr: Array<number>) {
+  let newArr: Array<number> = [];
+
+  for (let i = 0; i < numArr.length; i++) {
+    if (numArr[i] < 10 && numArr[i] >= 1) {
+      const isDupli: number = new Set(numArr).size;
+
+      if (numArr.length !== isDupli || numArr.length !== 3) {
+        console.log(
+          '🧐 숫자 중 중복이 있거나 숫자 세 가지를 선택하지 않으셨습니다. 🧐'
+        );
+        console.log();
+        break;
+      }
+      newArr.push(numArr[i]);
+    } else {
+      console.log(`🧐 1 ~ 9 숫자에서만 골라주세요. 🧐`);
+      console.log();
+      break;
+    }
+  }
+
+  return newArr;
 }
 
-function searchBestRecord(): string {
-  return 'searchBestRecord';
+function searchBestRecord(): any {
+  const findUser = JSON.parse(fs.readFileSync('./test.txt', 'utf8'))[0];
+
+  if (findUser.bestScore === undefined) {
+    return '아직 기록이 없군요! 게임을 먼저 시작해 주세요!';
+  } else {
+    return `${findUser.nickName}님의 최고기록은 ${findUser.bestScore}번 입니다!`;
+  }
 }
 
-function theEnd(): string {
-  return '게임을 종료합니다.';
+function randomNum() {
+  let randomArr: Array<number> = [];
+
+  while (randomArr.length !== 3) {
+    let oneNine = Math.ceil(Math.random() * 9);
+    if (randomArr.includes(oneNine)) {
+      continue;
+    } else {
+      randomArr.push(oneNine);
+    }
+  }
+  return randomArr;
 }
 
 main();
