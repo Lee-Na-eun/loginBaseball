@@ -6,14 +6,21 @@ interface userProperty {
   [key: string]: any;
 }
 
-class FindUserNickname {
+class FindUserData {
   findSameNickName?: object;
+  findBsetScore?: number;
 
-  constructor(questionInput: string) {
+  constructor(questionInput?: string) {
     try {
       this.findSameNickName = JSON.parse(
         fs.readFileSync('./test.txt', 'utf8')
       ).filter((el: userProperty) => el.nickName === questionInput)[0].nickName;
+
+      this.findBsetScore = JSON.parse(
+        fs.readFileSync('./test.txt', 'utf8')
+      ).filter(
+        (el: userProperty) => el.nickName === questionInput
+      )[0].bestScore;
     } catch {
       console.log();
     }
@@ -35,16 +42,23 @@ class SignupUserData {
         nickName: (this.nickName = nickName),
         bestScore: (this.bestScore = 50000),
       });
-
-      fs.writeFileSync('./test.txt', JSON.stringify(readUserData));
+      new ReadOrSendData(readUserData).sendUserData;
     } catch {
       usersArr.push({
         nickName: (this.nickName = nickName),
         bestScore: (this.bestScore = 50000),
       });
-
       fs.writeFileSync('./test.txt', JSON.stringify(usersArr));
     }
+  }
+}
+
+class ReadOrSendData {
+  readUserData?: object[];
+  sendUserData?: void;
+  constructor(value?: object[]) {
+    this.readUserData = JSON.parse(fs.readFileSync('test.txt', 'utf8'));
+    this.sendUserData = fs.writeFileSync('./test.txt', JSON.stringify(value));
   }
 }
 // classZone
@@ -53,8 +67,6 @@ function main(): void {
   while (true) {
     // 메인메뉴보여주기 O
     // 입력받기 O
-    // 두번째 메뉴 보여주기
-    // 게임시작 / 기록보기 / 게임종료
     printFirstMenu();
     selectSignupLogin();
   }
@@ -69,7 +81,7 @@ function printFirstMenu(): void {
 
 function selectSignupLogin(): void {
   // 1번 눌렀을 때 로그인 입력하기 O
-  // 2번 눌렀을 때 회원가입 입력하기
+  // 2번 눌렀을 때 회원가입 입력하기 O
   while (true) {
     const selectInput: string = readline.question();
     if (selectInput === '1') {
@@ -94,18 +106,19 @@ function login(): void {
   while (true) {
     const inputYourNickname: string = readline.question();
 
-    if (
-      new FindUserNickname(inputYourNickname).findSameNickName === undefined
-    ) {
+    if (new FindUserData(inputYourNickname).findSameNickName === undefined) {
       console.log(`🤔 회원정보가 없습니다. 회원가입 먼저 해주세요. 🤔 \n`);
       break;
-    } else if (new FindUserNickname(inputYourNickname)) {
+    } else if (new FindUserData(inputYourNickname)) {
       console.log();
       console.log(
         `😍 환영합니다, ${
-          new FindUserNickname(inputYourNickname).findSameNickName
+          new FindUserData(inputYourNickname).findSameNickName
         }님 😍 \n`
       );
+
+      selectAfterLoginQuetion(inputYourNickname);
+      break;
     }
   }
 
@@ -118,17 +131,192 @@ function signup(): void {
   // test.txt가 있을 때 일단 txt파일 읽어옴 -> 그 배열에다가 객체 넣어줘야함...
   const signupForNickname: string = readline.question();
 
-  if (new FindUserNickname(signupForNickname).findSameNickName) {
-    console.log();
+  if (new FindUserData(signupForNickname).findSameNickName) {
     console.log('이미 존재하는 회원정보 입니다.');
   } else {
     new SignupUserData(signupForNickname);
-    console.log();
     console.log('🎉 회원가입이 완료되었습니다. 🎉');
   }
 }
 
-//signup();
+function selectAfterLoginQuetion(inputYourNickname: string): void {
+  // 두번째 메뉴 보여주기 O
+  // 게임시작 / 기록보기 / 게임종료
+  while (true) {
+    console.log();
+    console.log(`메뉴를 선택해주세요. \n`);
+    console.log(`1. 게임시작`);
+    console.log(`2. 내 최고기록 보기`);
+    console.log(`3. 종료 \n`);
+
+    const anwerQuestion: string = readline.question();
+
+    if (anwerQuestion === '1') {
+      console.log(`게임을 시작합니다. \n`);
+      gameStart(inputYourNickname);
+    } else if (anwerQuestion === '2') {
+      console.log(
+        `${
+          new FindUserData(inputYourNickname).findSameNickName
+        }님의 최고 기록 입니다. \n`
+      );
+    } else if (anwerQuestion === '3') {
+      console.log(`종료합니다 \n`);
+      break;
+    }
+  }
+}
+
+function gameStart(inputYourNickname: string): void {
+  let randomQuiz: number[] = randomNum();
+  console.log(randomQuiz);
+  let tryCount: number = 0;
+
+  ballStrikeCompare(randomQuiz, tryCount, inputYourNickname);
+
+  // console.log(new FindUserData(inputYourNickname));
+  // const userData = new FindUserData(inputYourNickname);
+  // console.log(tryCount);
+
+  // if (userData.findBsetScore === 50000) {
+  //   console.log('wow');
+  // }
+
+  // if (filterUser.bestScore === undefined || filterUser.bestScore > tryCount) {
+  //   filterUser.bestScore = tryCount;
+
+  //   let parseData = JSON.parse(fs.readFileSync('./test.txt', 'utf8'));
+
+  //   const filter = parseData.filter((el: any) => {
+  //     if (el.nickName === filterUser.nickName) {
+  //       return el;
+  //     }
+  //   });
+
+  //   parseData.splice(parseData.indexOf(filter[0]), 1);
+  //   parseData.push(filterUser);
+
+  //   fs.writeFileSync('./test.txt', `${JSON.stringify(parseData)}`);
+  // }
+}
+
+function ballStrikeCompare(
+  randomQuiz: Array<number>,
+  tryCount: number,
+  inputYourNickname: string
+) {
+  while (true) {
+    console.log('1 ~ 9까지 원하는 숫자 세가지를 입력하세요.');
+    const numInput: string = readline.question();
+
+    let ballCount: number = 0;
+    let strikeCount: number = 0;
+
+    const changeNum: Array<number> = numInput
+      .split(' ')
+      .map((el) => Number(el));
+
+    const filterIfLength: number = filterIf(changeNum).length;
+
+    if (filterIfLength === 3) {
+      tryCount++;
+    } else {
+      break;
+    }
+
+    for (let i = 0; i < changeNum.length; i++) {
+      const howManyBall: Boolean = randomQuiz.includes(changeNum[i]);
+      if (howManyBall && randomQuiz[i] === changeNum[i]) {
+        strikeCount++;
+      } else if (howManyBall) {
+        ballCount++;
+      }
+    }
+
+    if (ballCount === 0 && strikeCount === 0) {
+      console.log('Out!');
+      console.log();
+    } else if (strikeCount === 3) {
+      console.log();
+      console.log('🎊 Home Run! 🎊');
+      console.log(`축하합니다! ${tryCount}번 만에 성공하셨습니다!`);
+      console.log(tryCount);
+      bestScoreCompareAndRenewal(tryCount, inputYourNickname);
+      console.log();
+      break;
+    } else if (ballCount !== 0 && strikeCount === 0) {
+      console.log(`⚾ ${ballCount} Ball! ⚾`);
+      console.log();
+    } else if (strikeCount !== 0 && ballCount === 0) {
+      console.log(`⚾ ${strikeCount} Strik! ⚾`);
+      console.log();
+    } else {
+      console.log(`⚾ ${strikeCount} Strik, ${ballCount} Ball! ⚾`);
+      console.log();
+    }
+  }
+}
+
+function bestScoreCompareAndRenewal(
+  tryCount?: number,
+  inputYourNickname?: string
+): void {
+  console.log('try', tryCount);
+  console.log('input', inputYourNickname);
+
+  const yourData = new FindUserData(inputYourNickname);
+  console.log(new ReadOrSendData([yourData]).readUserData);
+  const readYourData = new ReadOrSendData([yourData]).readUserData;
+  console.log(yourData);
+  console.log(`aaa`, readYourData.indexOf(yourData));
+
+  if (yourData.findBsetScore === 50000) {
+    console.log('renewal Score!');
+    // 데이터를 읽어오고, 배열중 닉네임과 같은 것을 찾아 index를 알아내고, 삭제하고 다시 붙여넣어서 send
+  } else {
+    console.log('hi');
+  }
+}
+
+function filterIf(numArr: Array<number>) {
+  let newArr: Array<number> = [];
+
+  while (true) {
+    for (let i = 0; i < numArr.length; i++) {
+      if (numArr[i] < 10 && numArr[i] >= 1) {
+        const isDupli: number = new Set(numArr).size;
+
+        if (numArr.length !== isDupli || numArr.length !== 3) {
+          console.log(
+            '🧐 숫자 중 중복이 있거나 숫자 세 가지를 선택하지 않으셨습니다. 🧐'
+          );
+          console.log();
+        }
+        newArr.push(numArr[i]);
+      } else {
+        console.log(`🧐 1 ~ 9 숫자에서만 골라주세요. 🧐`);
+        console.log();
+        break;
+      }
+    }
+    return newArr;
+  }
+}
+
+function randomNum() {
+  let randomArr: Array<number> = [];
+
+  while (randomArr.length !== 3) {
+    let oneNine = Math.ceil(Math.random() * 9);
+    if (randomArr.includes(oneNine)) {
+      continue;
+    } else {
+      randomArr.push(oneNine);
+    }
+  }
+  return randomArr;
+}
+
 main();
 
 // function signup(): void {
@@ -283,52 +471,4 @@ main();
 //     }
 //   }
 //   return randomArr;
-// }
-
-// if (loginInput === '1') {
-//   try {
-//     fs.readFileSync('./test.txt', 'utf8');
-//   } catch {
-//     console.log('회원가입 먼저 해주세요.');
-//     break;
-//   }
-//   const userParse: any = JSON.parse(fs.readFileSync('./test.txt', 'utf8'));
-//   console.log();
-//   console.log('아이디를 입력해주세요.');
-//   const loginInput: string = readline.question();
-
-//   const filterUser: any = userParse.filter(
-//     (el: any) => el.nickName === loginInput
-//   );
-
-//   if (filterUser.length === 0) {
-//     console.log('🤔 회원정보가 없습니다. 회원가입 먼저 해주세요. 🤔');
-//   } else {
-//     console.log(`😍 환영합니다, ${filterUser[0].nickName}님 😍`);
-//     while (true) {
-//       console.log();
-//       console.log('메뉴를 선택해주세요.');
-//       console.log('1. 게임시작');
-//       console.log('2. 내 최고기록 보기');
-//       console.log('3. 종료');
-//       const selectMenu = readline.question();
-//       console.log();
-
-//       if (selectMenu === '1') {
-//         gameStart(filterUser[0]);
-//       } else if (selectMenu === '2') {
-//         console.log(searchBestRecord(filterUser[0]));
-//       } else {
-//         console.log('게임을 종료합니다.');
-//         console.log();
-//         break;
-//       }
-//     }
-//   }
-// } else if (loginInput === '2') {
-//   signup();
-//   console.log();
-// } else {
-//   console.log('1번과 2번 중에서 골라주세요.');
-//   console.log();
 // }

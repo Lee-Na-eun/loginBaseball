@@ -1,1 +1,1 @@
-[{"nickName":"nanni888","bestScore":50000}]
+[{"findSameNickName":"gaga","findBsetScore":50000}]
