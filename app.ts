@@ -1,43 +1,7 @@
 import * as fs from 'fs';
 import * as readline from 'readline-sync';
 
-function main(): void {
-  while (true) {
-    // 메인메뉴보여주기 O
-    // 입력받기 O
-    // 두번째 메뉴 보여주기
-    // 게임시작 / 기록보기 / 게임종료
-    printFirstMenu();
-    selectSignupLogin();
-  }
-}
-
-function printFirstMenu(): void {
-  console.log('⚾ 숫자야구를 시작합니다! ⚾\n');
-  console.log('1. 로그인');
-  console.log(`2. 회원가입 \n`);
-}
-
-function selectSignupLogin(): void {
-  // 1번 눌렀을 때 로그인 입력하기 O
-  // 2번 눌렀을 때 회원가입 입력하기
-  while (true) {
-    const selectInput: string = readline.question();
-    if (selectInput === '1') {
-      console.log();
-      console.log(`📌 아이디를 입력해주세요. 📌 \n`);
-      login();
-    } else if (selectInput === '2') {
-      console.log();
-      console.log(`📝 회원가입 하실 아이디를 입력해주세요. 📝 \n`);
-    } else {
-      console.log();
-      console.log(`1번과 2번 중에서 골라주세요. \n`);
-      break;
-    }
-  }
-}
-
+// classZone
 interface userProperty {
   [key: string]: any;
 }
@@ -56,37 +20,116 @@ class FindUserNickname {
   }
 }
 
-class sendDataForRenewal {}
+class SignupUserData {
+  bestScore?: number;
+  nickName?: string;
+
+  constructor(nickName?: string) {
+    let usersArr = [];
+    try {
+      let readUserData: Array<object> = JSON.parse(
+        fs.readFileSync('./test.txt', 'utf8')
+      );
+
+      readUserData.push({
+        nickName: (this.nickName = nickName),
+        bestScore: (this.bestScore = 50000),
+      });
+
+      fs.writeFileSync('./test.txt', JSON.stringify(readUserData));
+    } catch {
+      usersArr.push({
+        nickName: (this.nickName = nickName),
+        bestScore: (this.bestScore = 50000),
+      });
+
+      fs.writeFileSync('./test.txt', JSON.stringify(usersArr));
+    }
+  }
+}
+// classZone
+
+function main(): void {
+  while (true) {
+    // 메인메뉴보여주기 O
+    // 입력받기 O
+    // 두번째 메뉴 보여주기
+    // 게임시작 / 기록보기 / 게임종료
+    printFirstMenu();
+    selectSignupLogin();
+  }
+}
+
+function printFirstMenu(): void {
+  console.log();
+  console.log('⚾ 숫자야구를 시작합니다! ⚾\n');
+  console.log('1. 로그인');
+  console.log(`2. 회원가입 \n`);
+}
+
+function selectSignupLogin(): void {
+  // 1번 눌렀을 때 로그인 입력하기 O
+  // 2번 눌렀을 때 회원가입 입력하기
+  while (true) {
+    const selectInput: string = readline.question();
+    if (selectInput === '1') {
+      console.log();
+      console.log(`📌 아이디를 입력해주세요. 📌 \n`);
+      login();
+      break;
+    } else if (selectInput === '2') {
+      console.log();
+      console.log(`📝 회원가입 하실 아이디를 입력해주세요. 📝 \n`);
+      signup();
+      break;
+    } else {
+      console.log();
+      console.log(`1번과 2번 중에서 골라주세요. \n`);
+      break;
+    }
+  }
+}
 
 function login(): void {
-  const inputYourNickname: string = readline.question();
+  while (true) {
+    const inputYourNickname: string = readline.question();
 
-  if (new FindUserNickname(inputYourNickname).findSameNickName === undefined) {
-    console.log('🤔 회원정보가 없습니다. 회원가입 먼저 해주세요. 🤔');
-  } else if (new FindUserNickname(inputYourNickname)) {
-    console.log();
-    console.log(
-      `😍 환영합니다, ${
-        new FindUserNickname(inputYourNickname).findSameNickName
-      }님 😍`
-    );
+    if (
+      new FindUserNickname(inputYourNickname).findSameNickName === undefined
+    ) {
+      console.log(`🤔 회원정보가 없습니다. 회원가입 먼저 해주세요. 🤔 \n`);
+      break;
+    } else if (new FindUserNickname(inputYourNickname)) {
+      console.log();
+      console.log(
+        `😍 환영합니다, ${
+          new FindUserNickname(inputYourNickname).findSameNickName
+        }님 😍 \n`
+      );
+    }
   }
+
   // 파일에 있는 데이터를 읽어오겠지 (클래스로 지정해줌)
   // 그 파일에 있는 데이터는 객체를 요소로 가진 배열인데, 여기서 나는 inputId와 같은 nickName을 가진 아이를 찾아야한다.
 }
 
 function signup(): void {
+  // test.txt가 없을 때 error가 분명 뜰거임 그 때 바로 fs.writeSync (배열에 객체를 넣어줘야함)
+  // test.txt가 있을 때 일단 txt파일 읽어옴 -> 그 배열에다가 객체 넣어줘야함...
   const signupForNickname: string = readline.question();
 
   if (new FindUserNickname(signupForNickname).findSameNickName) {
+    console.log();
     console.log('이미 존재하는 회원정보 입니다.');
   } else {
+    new SignupUserData(signupForNickname);
+    console.log();
     console.log('🎉 회원가입이 완료되었습니다. 🎉');
   }
 }
 
-signup();
-// main();
+//signup();
+main();
 
 // function signup(): void {
 //   console.log();
