@@ -15,7 +15,7 @@ function main(): void {
 function printFirstMenu(): void {
   console.log('⚾ 숫자야구를 시작합니다! ⚾\n');
   console.log('1. 로그인');
-  console.log('2. 회원가입');
+  console.log(`2. 회원가입 \n`);
 }
 
 function selectSignupLogin(): void {
@@ -24,19 +24,22 @@ function selectSignupLogin(): void {
   while (true) {
     const selectInput: string = readline.question();
     if (selectInput === '1') {
-      console.log(`아이디를 입력해주세요. \n`);
+      console.log();
+      console.log(`📌 아이디를 입력해주세요. 📌 \n`);
       login();
     } else if (selectInput === '2') {
-      console.log(`회원가입할 아이디를 입력해주세요. \n`);
+      console.log();
+      console.log(`📝 회원가입 하실 아이디를 입력해주세요. 📝 \n`);
     } else {
+      console.log();
       console.log(`1번과 2번 중에서 골라주세요. \n`);
       break;
     }
   }
 }
 
-interface userNickNameProperty {
-  [nickName: string]: any;
+interface userProperty {
+  [key: string]: any;
 }
 
 class FindUserNickname {
@@ -46,29 +49,44 @@ class FindUserNickname {
     try {
       this.findSameNickName = JSON.parse(
         fs.readFileSync('./test.txt', 'utf8')
-      ).filter(
-        (el: userNickNameProperty) => el.nickName === questionInput
-      )[0].nickName;
+      ).filter((el: userProperty) => el.nickName === questionInput)[0].nickName;
     } catch {
       console.log();
     }
   }
 }
 
-function login(): void {
-  const inputId: string = readline.question();
+class sendDataForRenewal {}
 
-  if (new FindUserNickname(inputId).findSameNickName === undefined) {
+function login(): void {
+  const inputYourNickname: string = readline.question();
+
+  if (new FindUserNickname(inputYourNickname).findSameNickName === undefined) {
     console.log('🤔 회원정보가 없습니다. 회원가입 먼저 해주세요. 🤔');
-  } else if (new FindUserNickname(inputId)) {
+  } else if (new FindUserNickname(inputYourNickname)) {
+    console.log();
     console.log(
-      `😍 환영합니다, ${new FindUserNickname(inputId).findSameNickName}님 😍`
+      `😍 환영합니다, ${
+        new FindUserNickname(inputYourNickname).findSameNickName
+      }님 😍`
     );
   }
-
   // 파일에 있는 데이터를 읽어오겠지 (클래스로 지정해줌)
   // 그 파일에 있는 데이터는 객체를 요소로 가진 배열인데, 여기서 나는 inputId와 같은 nickName을 가진 아이를 찾아야한다.
 }
+
+function signup(): void {
+  const signupForNickname: string = readline.question();
+
+  if (new FindUserNickname(signupForNickname).findSameNickName) {
+    console.log('이미 존재하는 회원정보 입니다.');
+  } else {
+    console.log('🎉 회원가입이 완료되었습니다. 🎉');
+  }
+}
+
+signup();
+// main();
 
 // function signup(): void {
 //   console.log();
@@ -223,8 +241,6 @@ function login(): void {
 //   }
 //   return randomArr;
 // }
-
-main();
 
 // if (loginInput === '1') {
 //   try {
