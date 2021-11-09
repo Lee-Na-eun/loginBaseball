@@ -9,8 +9,9 @@ interface userProperty {
 class FindUserData {
   nickName?: object;
   bestScore?: number;
+  aaa?: number;
 
-  constructor(questionInput?: string) {
+  constructor(questionInput?: string, num?: number) {
     try {
       this.nickName = JSON.parse(fs.readFileSync('./test.txt', 'utf8')).filter(
         (el: userProperty) => el.nickName === questionInput
@@ -19,8 +20,25 @@ class FindUserData {
       this.bestScore = JSON.parse(fs.readFileSync('./test.txt', 'utf8')).filter(
         (el: userProperty) => el.nickName === questionInput
       )[0].bestScore;
+
+      // if (this.bestScore === num) {
+      //   console.log('aaa');
+      // }
     } catch {
       console.log();
+    }
+  }
+}
+
+class renewal {
+  testNum?: number;
+  resultString?: string;
+
+  constructor(tryCount?: number, dataNumber?: number) {
+    if (!tryCount || !dataNumber) {
+      console.log('망할 에러 방지');
+    } else if (dataNumber > tryCount) {
+      this.resultString = '갱신해주기';
     }
   }
 }
@@ -131,11 +149,16 @@ function selectAfterLoginQuetion(inputYourNickname: string): void {
       console.log(`게임을 시작합니다. \n`);
       gameStart(inputYourNickname);
     } else if (anwerQuestion === '2') {
-      console.log(
-        `${
-          new FindUserData(inputYourNickname).nickName
-        }님의 최고 기록 입니다. \n`
-      );
+      const findBestScore = new FindUserData(inputYourNickname).bestScore;
+      if (findBestScore === 50000) {
+        console.log('아직 신기록이 없습니다.');
+      } else {
+        console.log(
+          `${
+            new FindUserData(inputYourNickname).nickName
+          }님의 최고 기록은 ${findBestScore}번 입니다. \n`
+        );
+      }
     } else if (anwerQuestion === '3') {
       console.log(`종료합니다 \n`);
       break;
@@ -145,7 +168,6 @@ function selectAfterLoginQuetion(inputYourNickname: string): void {
 
 function gameStart(inputYourNickname: string): void {
   let randomQuiz: number[] = randomNum();
-  console.log(randomQuiz);
   let tryCount: number = 0;
 
   ballStrikeCompare(randomQuiz, tryCount, inputYourNickname);
@@ -191,7 +213,6 @@ function ballStrikeCompare(
       console.log();
       console.log('🎊 Home Run! 🎊');
       console.log(`축하합니다! ${tryCount}번 만에 성공하셨습니다!`);
-      console.log(tryCount);
       bestScoreCompareAndRenewal(tryCount, inputYourNickname);
       console.log();
       break;
@@ -222,8 +243,7 @@ function bestScoreCompareAndRenewal(
     .map((el: userProperty) => el.nickName)
     .indexOf(inputYourNickname);
 
-  if (yourData.bestScore === 50000) {
-    console.log('renewal Score!');
+  if (new renewal(tryCount, yourData.bestScore).resultString === '갱신해주기') {
     yourData.bestScore = tryCount;
     readDataFile.splice(findSameDataIdx, 1);
     readDataFile.push(yourData);

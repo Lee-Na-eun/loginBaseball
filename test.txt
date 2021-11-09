@@ -1,1 +1,0 @@
-[{"nickName":"gaga","bestScore":50000},{"nickName":"gugu","bestScore":2},{"nickName":"nanni","bestScore":5}]
